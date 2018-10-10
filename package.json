@@ -1,0 +1,29 @@
+{
+  "name": "typetab",
+  "version": "0.0.1",
+  "description": "A new tab typing game.",
+  "scripts": {
+    "start:dev": "webpack-dev-server --env.development",
+    "build": "webpack --env.production --no-info",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "browserslist": "> 0.25%, not dead",
+  "author": "Patrick Krawczykowski <patrick@dreadful.design>",
+  "license": "SEE .license",
+  "devDependencies": {
+    "@babel/core": "^7.1.2",
+    "@babel/plugin-proposal-class-properties": "^7.1.0",
+    "@babel/preset-env": "^7.1.0",
+    "@babel/preset-react": "^7.0.0",
+    "babel-loader": "^8.0.4",
+    "copy-webpack-plugin": "^4.5.3",
+    "html-webpack-plugin": "^3.2.0",
+    "webpack": "^4.20.2",
+    "webpack-cli": "^3.1.2",
+    "webpack-dev-server": "^3.1.9"
+  },
+  "dependencies": {
+    "react": "^16.5.2",
+    "react-dom": "^16.5.2"
+  }
+}

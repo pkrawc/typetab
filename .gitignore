@@ -1,0 +1,9 @@
+# file system fluff
+.DS_Store
+
+# development specific files
+node_modules
+*.log
+
+# build files
+dist
