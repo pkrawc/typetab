@@ -28,7 +28,7 @@ class App extends Component {
     timer: 0,
     score: 0
   }
-  componentDidMount = () => {
+  componentDidMount = async () => {
     document.addEventListener("keypress", this.handleKeyPress)
     const words = this.props.input.map(word => word.split("").map(l => l))
     this.setState({

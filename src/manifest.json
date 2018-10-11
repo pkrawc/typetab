@@ -1,6 +1,6 @@
 {
-  "name": "Typefast New Tab App",
-  "description": "A Typefast game for your new tabs",
+  "name": "TabType",
+  "description": "A new tab game to keep you on your toes.",
   "version": "0.0.1",
   "manifest_version": 2,
   "permissions": ["management"],
