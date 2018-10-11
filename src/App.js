@@ -13,6 +13,8 @@ const colors = {
   green_500: "hsl(187, 62%, 62%)"
 }
 
+// console.log(process.env.projectId)
+
 class App extends Component {
   static defaultProps = {
     input: []

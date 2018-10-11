@@ -1,4 +1,5 @@
 const path = require("path")
+const Dotenv = require("dotenv-webpack")
 const HtmlWebpackPlugin = require("html-webpack-plugin")
 const CopyWebpackPlugin = require("copy-webpack-plugin")
 
@@ -31,6 +32,7 @@ module.exports = ({ production }) => ({
     }
   },
   plugins: [
+    new Dotenv(),
     new HtmlWebpackPlugin({
       template: "src/index.html",
       minify: production ? true : false

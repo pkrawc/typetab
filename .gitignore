@@ -5,5 +5,8 @@
 node_modules
 *.log
 
+# config files
+.env
+
 # build files
 dist
