@@ -18,12 +18,15 @@ module.exports = ({ production }) => ({
   devServer: {
     contentBase: "dist",
     stats: {
+      colors: true,
       version: false,
       chunks: false,
       modules: false,
       children: false,
       source: false,
-      publicPath: false
+      publicPath: false,
+      errors: true,
+      warnings: false
     }
   },
   optimization: {

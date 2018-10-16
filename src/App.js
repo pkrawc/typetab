@@ -1,129 +1,128 @@
 import React, { Component } from "react"
 import styled from "styled-components"
 import moment from "moment"
-
-const colors = {
-  grey_100: "hsl(221, 14%, 96%)",
-  grey_500: "hsl(221, 14%, 60%)",
-  grey_700: "hsl(221, 14%, 36%)",
-  grey_900: "hsl(221, 14%, 24%)",
-
-  blue_500: "hsl(230, 74%, 61%)",
-
-  green_500: "hsl(187, 62%, 62%)"
-}
-
-// console.log(process.env.projectId)
+import { colors } from "./constants"
+import { db } from "./index"
+import Loader from "./components/Loader"
+import Legend from "./components/Legend"
+import Timer from "./components/Timer"
+import Auth from "./components/Auth"
 
 class App extends Component {
-  static defaultProps = {
-    input: []
-  }
+  timer = null
   state = {
+    startTimer: false,
     isLoaded: false,
     isPlaying: false,
-    value: "",
-    words: [],
-    level: 1,
-    currentWordIndex: 0,
-    currentLetterIndex: 0,
-    timer: 0,
+    levels: [],
+    levelIndex: 0,
+    wordIndex: 0,
+    letterIndex: 0,
     score: 0
   }
   componentDidMount = async () => {
     document.addEventListener("keypress", this.handleKeyPress)
-    const words = this.props.input.map(word => word.split("").map(l => l))
+    try {
+      const levels = []
+      const levelsSnapshots = await db.collection("levels").get()
+      levelsSnapshots.forEach(doc => {
+        const level = doc.data()
+        const words = level.words.map(word => word.split(""))
+        levels.push(words)
+      })
+      this.setState({
+        levels,
+        isLoaded: true
+      })
+    } catch (error) {
+      console.log(error)
+    }
+  }
+  startLevel = levelIndex =>
     this.setState({
-      words,
-      isLoaded: true
+      startTimer: true,
+      isPlaying: true
     })
-  }
-  handleStartGame = e => {
-    const startTime = moment()
-    this.timer = setInterval(() => this.startTimer(startTime), 10)
-    this.setState({ isPlaying: true })
-  }
+  completeLevel = () => this.setState({ isPlaying: false, startTimer: false })
   handleKeyPress = e => {
     const event = e
 
-    // New game, start timer and show first word.
+    let letterIndex = this.state.letterIndex
+    let wordIndex = this.state.wordIndex
+    let levelIndex = this.state.levelIndex
+    let score = this.state.score
+    let word = this.state.levels[levelIndex][wordIndex]
+
+    // New level, start timer and show first word.
     if (!this.state.isPlaying && event.key === "Enter") {
-      this.handleStartGame()
+      return this.startLevel(levelIndex)
     }
 
-    const word = this.state.words[this.state.currentWordIndex]
-    let currentLetterIndex = this.state.currentLetterIndex
-    let currentWordIndex = this.state.currentWordIndex
-    let level = this.state.level
-    let score = this.state.score
-
     // Wrong letter, return early.
-    if (event.key !== word[currentLetterIndex]) return false
+    if (event.key !== word[letterIndex]) return false
 
     ++score
 
     // Last letter in word. Move to next word.
-    if (word.length - 1 === currentLetterIndex) {
-      ++currentWordIndex
-      currentLetterIndex = 0
+    if (word.length - 1 === letterIndex) {
+      ++wordIndex
+      letterIndex = 0
     } else {
-      ++currentLetterIndex
+      ++letterIndex
     }
 
     // Last word in level. Move to next level.
-    if (this.state.words.length === currentWordIndex) {
-      currentWordIndex = 0
-      ++level
+    if (this.state.levels[levelIndex] === wordIndex) {
+      wordIndex = 0
+      ++levelIndex
+      this.completeLevel()
     }
 
     // TODO Last level in game. Stop Timer and exit game.
 
     // Update the state accordingly
     this.setState({
-      currentLetterIndex,
-      currentWordIndex,
-      level,
+      letterIndex,
+      wordIndex,
+      levelIndex,
       score
     })
   }
-  startTimer = startTime =>
-    this.setState({
-      timer: moment().diff(startTime)
-    })
-
-  stopTimer = () => clearInterval(this.timer)
   getIsCurrent = index =>
-    index === this.state.currentLetterIndex ? "current" : "not-current"
+    index === this.state.letterIndex ? "current" : "not-current"
   getIsComplete = index =>
-    index < this.state.currentLetterIndex ? "complete" : "not-complete"
+    index < this.state.letterIndex ? "complete" : "not-complete"
   render() {
     const {
       isLoaded,
       isPlaying,
-      timer,
-      level,
-      words,
-      currentWordIndex,
+      startTimer,
+      levels,
+      levelIndex,
+      wordIndex,
       score
     } = this.state
-    if (!isLoaded) return <h2>loading...</h2>
+    if (!isLoaded) return <Loader />
     return (
       <AppContainer>
+        <Auth />
         <Game>
-          <h3>
-            <span>Level: {level}</span>
-            <span className="timer" onClick={this.stopTimer}>
-              {moment(timer).format("mm:ss:SS")}
-            </span>
+          <Legend length={levels[levelIndex].length} currentIndex={wordIndex} />
+          <h3 className="top-info">
+            <span>Level: {levelIndex + 1}</span>
+            {startTimer && (
+              <Timer>
+                {time => (
+                  <span className="timer">
+                    {moment(time).format("mm:ss:SS")}
+                  </span>
+                )}
+              </Timer>
+            )}
           </h3>
-          <ul className="legend">
-            {words.map((word, i) => (
-              <li key={i} className="level" />
-            ))}
-          </ul>
           {isPlaying ? (
             <h1 className="word">
-              {words[currentWordIndex].map((letter, i) => (
+              {levels[levelIndex][wordIndex].map((letter, i) => (
                 <span
                   key={`${letter}-${i}`}
                   className={`letter ${this.getIsCurrent(
@@ -135,15 +134,16 @@ class App extends Component {
               ))}
             </h1>
           ) : (
-            <h2>Press enter to begin a game.</h2>
+            <h2>[ PRESS ENTER TO BEGIN ]</h2>
           )}
           <h3>
             <span className="timer">{score} :score</span>
           </h3>
         </Game>
         <h4 className="explanation">
-          Typefast is a game of speed, type each word as fast as you can. Wrong
-          letters decrease your score.
+          TypeTab is a game of speed, type each word quickly and accurately.
+          Wrong letters will count against your score. Move through the levels
+          and see your score climb. Highscores are based on letters per minute.
         </h4>
       </AppContainer>
     )
@@ -167,13 +167,22 @@ const AppContainer = styled.main`
 `
 
 const Game = styled.section`
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
   padding: 4rem;
   background: ${colors.blue_500};
-  color: ${colors.grey_100};
-  width: 100%;
-  max-width: 70rem;
   border-radius: 6px;
   box-shadow: 0 3rem 3rem -2rem rgba(84, 109, 229, 0.48);
+  color: ${colors.grey_100};
+  min-height: 25rem;
+  width: 100%;
+  max-width: 70rem;
+
+  .top-info {
+    margin-top: 1rem;
+  }
   h3 {
     display: flex;
     .timer {
@@ -183,12 +192,10 @@ const Game = styled.section`
   h2 {
     text-align: center;
     margin: 2rem 0;
+    color: ${colors.grey_300};
   }
   h1 {
-    margin-top: 2rem;
-    margin-bottom: 2rem;
-    font-size: 5rem;
-    color: ${colors.grey_100};
+    margin: 1.5rem;
     text-align: center;
     span {
       opacity: 0.48;

@@ -9,7 +9,7 @@
   },
   "browserslist": "> 0.25%, not dead",
   "author": "Patrick Krawczykowski <patrick@dreadful.design>",
-  "license": "SEE .license",
+  "license": "SEE LICENSE IN <LICENSE.md>",
   "devDependencies": {
     "@babel/core": "^7.1.2",
     "@babel/plugin-proposal-class-properties": "^7.1.0",
